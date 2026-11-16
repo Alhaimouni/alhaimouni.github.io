@@ -1145,56 +1145,66 @@ update();
 
 
 /* ==========================================================================
-   SOUND — tiny synthesized sounds (Web Audio, no files). Short, soft, pentatonic.
+   SOUND — tiny synthesized sounds (Web Audio, no files). Soft, airy and non-musical: no piano or bell notes.
+   Built from filtered air (noise) and a muted tap, like fine glass, silk and brushed metal.
    Browsers only allow audio after the first tap/click, so it starts silent until then.
    ========================================================================== */
 const sfx = (() => {
-  /* Luxury palette: glass-bell tones (a sine plus soft overtones), a long gentle reverb, nothing sharp.
-     hover = a faint shimmer, click = a warm two-note chime, open/close = a slow rising or falling chord. Nothing plays while scrolling. */
-  let ctx = null, master = null; const lastBy = {};
-  const SCALE = [523.25, 587.33, 659.25, 783.99, 880.0, 1046.5, 1174.66];           // C major pentatonic-ish, one octave and a bit
+  /* hover = a faint breath of air, click = a muted soft tap, toggle = a short silk swipe up or down,
+     open / close = a smooth whoosh that rises or falls. Nothing plays while scrolling. */
+  let ctx = null, master = null, air = null; const lastBy = {};
   const on = () => !!(ctx && cfg.sound && cfg.volume > 0 && ctx.state === 'running');
-  function impulse(sec, decay) {                                                       // synthetic room: decaying noise
+  function room(sec, decay) {                                                          // a small, soft room: decaying noise
     const n = Math.floor(ctx.sampleRate * sec), buf = ctx.createBuffer(2, n, ctx.sampleRate);
-    for (let c = 0; c < 2; c++) { const d = buf.getChannelData(c); for (let i = 0; i < n; i++) d[i] = (Math.random() * 2 - 1) * Math.pow(1 - i / n, decay); }
+    for (let c = 0; c < 2; c++) { const d = buf.getChannelData(c); for (let k = 0; k < n; k++) d[k] = (Math.random() * 2 - 1) * Math.pow(1 - k / n, decay); }
     return buf;
   }
   function init() {
     if (ctx) { if (ctx.state === 'suspended') ctx.resume(); return; }
     const AC = window.AudioContext || window.webkitAudioContext; if (!AC) return;
-    ctx = new AC(); master = ctx.createGain(); master.gain.value = .30;
-    const lp = ctx.createBiquadFilter(); lp.type = 'lowpass'; lp.frequency.value = 7000; lp.Q.value = .3;
-    const dry = ctx.createGain(); dry.gain.value = .85, wet = ctx.createGain(); wet.gain.value = .42;
-    const conv = ctx.createConvolver(); conv.buffer = impulse(2.2, 3.4);
+    ctx = new AC(); master = ctx.createGain(); master.gain.value = .5;
+    const lp = ctx.createBiquadFilter(); lp.type = 'lowpass'; lp.frequency.value = 9000; lp.Q.value = .2;
+    const dry = ctx.createGain(); dry.gain.value = .9; const wet = ctx.createGain(); wet.gain.value = .22;
+    const conv = ctx.createConvolver(); conv.buffer = room(.9, 3.2);
     master.connect(lp); lp.connect(dry); dry.connect(ctx.destination); lp.connect(conv); conv.connect(wet); wet.connect(ctx.destination);
+    const n = ctx.sampleRate; air = ctx.createBuffer(1, n, ctx.sampleRate); const d = air.getChannelData(0); for (let k = 0; k < n; k++) d[k] = Math.random() * 2 - 1;   // one second of white noise
   }
-  const PARTIALS = [[1, 1], [2, .26], [3, .09], [4.07, .035]];                         // fundamental + soft overtones = glass bell
-  function voice(f, delay = 0, dur = .5, vol = .4) {
-    if (!on()) return; const t = ctx.currentTime + delay, v = vol * (cfg.volume / 100);
-    PARTIALS.forEach(([m, a], k) => {
-      const o = ctx.createOscillator(), g = ctx.createGain(), d = dur / (1 + k * .7);
-      o.type = 'sine'; o.frequency.setValueAtTime(f * m, t);
-      g.gain.setValueAtTime(0, t); g.gain.linearRampToValueAtTime(Math.max(.0002, v * a), t + .007); g.gain.exponentialRampToValueAtTime(.0001, t + d);
-      o.connect(g); g.connect(master); o.start(t); o.stop(t + d + .05);
-    });
+  const level = v => v * (cfg.volume / 100);
+  // a swept band of air: the heart of the whoosh, the swipe and the hover
+  function breath(delay, f0, f1, dur, vol, q = 1.1, attack = .35) {
+    if (!on()) return; const t = ctx.currentTime + delay, src = ctx.createBufferSource(), bp = ctx.createBiquadFilter(), g = ctx.createGain();
+    src.buffer = air; src.loop = true; bp.type = 'bandpass'; bp.Q.value = q;
+    bp.frequency.setValueAtTime(f0, t); bp.frequency.exponentialRampToValueAtTime(f1, t + dur);
+    g.gain.setValueAtTime(0, t); g.gain.linearRampToValueAtTime(level(vol), t + dur * attack); g.gain.exponentialRampToValueAtTime(.0001, t + dur);
+    src.connect(bp); bp.connect(g); g.connect(master); src.start(t); src.stop(t + dur + .05);
+  }
+  // a muted tap: a very short low "thud" with a fast pitch drop and no musical pitch you could hum
+  function tap(delay, f, dur, vol) {
+    if (!on()) return; const t = ctx.currentTime + delay, o = ctx.createOscillator(), g = ctx.createGain(), lp = ctx.createBiquadFilter();
+    o.type = 'sine'; o.frequency.setValueAtTime(f * 1.9, t); o.frequency.exponentialRampToValueAtTime(f, t + dur * .5);
+    lp.type = 'lowpass'; lp.frequency.value = 900;
+    g.gain.setValueAtTime(0, t); g.gain.linearRampToValueAtTime(level(vol), t + .004); g.gain.exponentialRampToValueAtTime(.0001, t + dur);
+    o.connect(lp); lp.connect(g); g.connect(master); o.start(t); o.stop(t + dur + .03);
   }
   const gate = (k, ms) => { const n = performance.now(); if (n - (lastBy[k] || 0) < ms) return false; lastBy[k] = n; return true; };   // each sound type has its own timer
   return {
     init,
-    hover()      { if (gate('hover', 70)) { voice(1567.98, 0, .30, .11); voice(2349.3, .035, .22, .04); } },        // faint shimmer
-    tap()        { if (gate('tap', 60)) { voice(1046.5, 0, .45, .26); voice(1567.98, .05, .55, .17); voice(523.25, 0, .35, .09); } },   // warm two-note chime
-    tick(x = .5) { if (gate('tick', 70)) voice(SCALE[Math.round(x * (SCALE.length - 1))], 0, .22, .14); },
-    toggle(v, force) { if (!force && !gate('toggle', 60)) return; v ? (voice(783.99, 0, .35, .22), voice(1174.66, .08, .5, .2)) : (voice(1174.66, 0, .3, .18), voice(783.99, .08, .45, .18)); },
-    open()  { voice(659.25, 0, .8, .2); voice(987.77, .09, .9, .17); voice(1318.5, .18, 1.1, .15); },
-    close() { voice(1318.5, 0, .5, .14); voice(987.77, .08, .6, .14); voice(659.25, .16, .8, .14); },
+    hover()      { if (gate('hover', 80)) breath(0, 5200, 8200, .12, .22, 1.4, .5); },                                       // a faint breath of air
+    tap()        { if (gate('tap', 60)) { tap(0, 260, .09, .50); breath(0, 3400, 2300, .06, .30, 1.6, .2); } },              // a muted soft tap with a hint of air
+    tick(x = .5) { if (gate('tick', 60)) breath(0, 2600 + x * 2600, 2200 + x * 2200, .045, .26, 2.2, .25); },                   // a fine, short tick
+    toggle(v, force) { if (!force && !gate('toggle', 60)) return; v ? (breath(0, 1400, 4200, .16, .30, 1.2, .5), tap(0, 300, .07, .30)) : (breath(0, 4200, 1400, .16, .26, 1.2, .5), tap(0, 220, .07, .26)); },   // silk swipe up / down
+    open()       { breath(0, 500, 3000, .46, .42, .9, .55); tap(.2, 210, .16, .30); },                                          // a smooth rising whoosh
+    close()      { breath(0, 3000, 450, .38, .34, .9, .4); tap(.18, 180, .12, .22); },                                          // the same, falling
   };
 })();
 // unlock audio on the first real gesture, then voice the UI
 ['pointerdown', 'keydown', 'touchstart'].forEach(ev => addEventListener(ev, () => sfx.init(), { once: false, passive: true }));
 // light hover shimmer: mouse only, only the important controls, once per entry
 const HOVER_SEL = '.btn, .gear, .lang-btn, .role, .project, .chip, .tl-dot, .nav ul a';
+let lastScrollT = 0; addEventListener('scroll', () => { lastScrollT = performance.now(); }, { passive: true });
 document.addEventListener('pointerover', e => {
-  if (e.pointerType !== 'mouse') return; const el = e.target.closest(HOVER_SEL); if (!el) return;
+  if (e.pointerType !== 'mouse' || performance.now() - lastScrollT < 350) return;     // never while the page is scrolling under a resting pointer
+  const el = e.target.closest(HOVER_SEL); if (!el) return;
   if (e.relatedTarget && el.contains(e.relatedTarget)) return; sfx.hover();
 });
 // one sound per click
