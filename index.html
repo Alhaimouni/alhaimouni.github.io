@@ -764,7 +764,7 @@ const AR = {
   'Air Boomber: Flight Simulator':'محاكي طيران Air Boomber',
   'A 3D flight simulator built with Three.js and WebGL. Choose from 18 aircraft, from fighters and bombers to a stealth bomber and a moon rocket, then play free flight, strike missions, demolition rush or landing challenges over detailed cities, with a cockpit HUD, a flight physics model and adjustable graphics.':'محاكي طيران ثلاثي الأبعاد مبني بـ Three.js وWebGL. اختر من بين 18 طائرة، من المقاتلات والقاذفات إلى القاذفة الشبحية وصاروخ القمر، ثم العب في الطيران الحر أو مهمات الضرب أو سباق الهدم أو تحديات الهبوط فوق مدن مفصّلة، مع شاشة قيادة داخل الطائرة ونموذج فيزياء للطيران ورسومات قابلة للتعديل.',
   'Game':'لعبة','Flight physics':'فيزياء الطيران',
-  'Flying over New York':'التحليق فوق نيويورك','Banking over the city':'الانعطاف فوق المدينة','Approach to New York':'الاقتراب من نيويورك','Hangar: game modes and aircraft':'الحظيرة: أنماط اللعب والطائرات','Hangar: A-10C Thunderbolt II':'الحظيرة: A-10C ثاندربولت II','Hangar: B-2A Spirit':'الحظيرة: B-2A سبيريت','Cockpit view':'منظر قمرة القيادة','Demolition Rush mode':'نمط سباق الهدم',
+  'Flying over New York':'التحليق فوق نيويورك','Between the skyscrapers':'التحليق بين ناطحات السحاب','Banking over the city':'الانعطاف فوق المدينة','Approach to New York':'الاقتراب من نيويورك','Hangar: game modes and aircraft':'الحظيرة: أنماط اللعب والطائرات','Hangar: A-10C Thunderbolt II':'الحظيرة: A-10C ثاندربولت II','Hangar: B-2A Spirit':'الحظيرة: B-2A سبيريت','Cockpit view':'منظر قمرة القيادة','Demolition Rush mode':'نمط سباق الهدم',
 };
 const AR_DATA = { 'Software':1 };
 let lang = 'en'; try { if (sessionStorage.getItem('pf-lang') === 'ar') lang = 'ar'; } catch (e) {}   // remembered for this visit only: every new visit opens in English
@@ -842,13 +842,14 @@ const PROJECTS = [
     links:[{t:'GitHub',u:'https://github.com/Alhaimouni/Air-Force-Boomber'}],
     gallery:[
       { src:'images/projects/air-boomber/01.jpg', cap:'Flying over New York' },
-      { src:'images/projects/air-boomber/02.jpg', cap:'Banking over the city' },
-      { src:'images/projects/air-boomber/03.jpg', cap:'Approach to New York' },
-      { src:'images/projects/air-boomber/04.jpg', cap:'Hangar: game modes and aircraft' },
-      { src:'images/projects/air-boomber/05.jpg', cap:'Hangar: A-10C Thunderbolt II' },
-      { src:'images/projects/air-boomber/06.jpg', cap:'Hangar: B-2A Spirit' },
-      { src:'images/projects/air-boomber/07.jpg', cap:'Cockpit view' },
-      { src:'images/projects/air-boomber/08.jpg', cap:'Demolition Rush mode' } ] },
+      { src:'images/projects/air-boomber/02.jpg', cap:'Between the skyscrapers' },
+      { src:'images/projects/air-boomber/03.jpg', cap:'Banking over the city' },
+      { src:'images/projects/air-boomber/04.jpg', cap:'Approach to New York' },
+      { src:'images/projects/air-boomber/05.jpg', cap:'Hangar: game modes and aircraft' },
+      { src:'images/projects/air-boomber/06.jpg', cap:'Hangar: A-10C Thunderbolt II' },
+      { src:'images/projects/air-boomber/07.jpg', cap:'Hangar: B-2A Spirit' },
+      { src:'images/projects/air-boomber/08.jpg', cap:'Cockpit view' },
+      { src:'images/projects/air-boomber/09.jpg', cap:'Demolition Rush mode' } ] },
   { id:3, cat:'software', title:'CAVT Programs Kiosk', year:'2026',
     desc:'Touch first Arabic (RTL) kiosk web app presenting the 20 vocational programs of CAVT, built by a team during a 24 to 48 hour hackathon.',
     tags:['React','Vite','Tailwind v4','Framer Motion','Zustand','PWA'],
