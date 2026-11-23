@@ -1193,8 +1193,8 @@ const sfx = (() => {
     tap()        { if (gate('tap', 60)) { tap(0, 260, .09, .50); breath(0, 3400, 2300, .06, .30, 1.6, .2); } },              // a muted soft tap with a hint of air
     tick(x = .5) { if (gate('tick', 60)) breath(0, 2600 + x * 2600, 2200 + x * 2200, .045, .26, 2.2, .25); },                   // a fine, short tick
     toggle(v, force) { if (!force && !gate('toggle', 60)) return; v ? (breath(0, 1400, 4200, .16, .30, 1.2, .5), tap(0, 300, .07, .30)) : (breath(0, 4200, 1400, .16, .26, 1.2, .5), tap(0, 220, .07, .26)); },   // silk swipe up / down
-    open()       { breath(0, 500, 3000, .46, .42, .9, .55); tap(.2, 210, .16, .30); },                                          // a smooth rising whoosh
-    close()      { breath(0, 3000, 450, .38, .34, .9, .4); tap(.18, 180, .12, .22); },                                          // the same, falling
+    open()       { breath(0, 700, 3400, .30, .42, .9, .55); tap(.13, 210, .12, .28); },                                          // a smooth rising whoosh
+    close()      { breath(0, 3400, 600, .24, .34, .9, .4); tap(.11, 180, .10, .22); },                                          // the same, falling
   };
 })();
 // unlock audio on the first real gesture, then voice the UI
